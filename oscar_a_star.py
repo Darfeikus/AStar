@@ -154,37 +154,50 @@ class Puzzle:
                             open[key] = node
                             self.updateMin(node.data, node.val)
 
-    def process(self,debug):
-        start = self.accept()
-        goal = self.accept()
+    def process(self,debug, start, goal):
         start = Node(start,0,0, None, "Start")
-        current = self.solve(start,goal,self.open,self.closed,self.f,self.h, debug)
+        
+        f = self.f
+        h = self.h
 
+        start.val = f(start,goal)
+        
+        self.open[start.data] = start
+        self.min.append( [start.data,start.val] )
+
+        current = self.solve(start,goal,self.open,self.closed,f,h, debug)
+        
         s = ""
-        nodes = []
-
         while current.prevDir != "Start":
-            nodes.insert(0,current)
             s = current.prevDir+","+s
             current=current.parent
-            
-        print(s[0:-1])
-        return nodes
+        # print(s[0:-1])
 
-def main():
-    n = int(input())
-    puz = Puzzle(n)
-    return puz.process(0)
+def main(puz,start,goal):
+    puz.process(0, start, goal)
 
 from time import time
 
 if __name__ == "__main__":
-    initial = time()
-    nodes = main()
-    final = time()
-    
-    # for n in nodes:
-    #     Puzzle.printM(Puzzle,n)
-    #     print("   |  \n   |  \n  \\|/")
+    n = int(input())
+    puz = Puzzle(n)
+    start = puz.accept()
+    goal = puz.accept()
 
-    print(f'ETA: {final - initial}')
+    # import cProfile
+    # cProfile.run('main(puz,start, goal)')
+
+    promedio = []
+    iteraciones = 1000
+
+    for i in range(iteraciones):
+        initial = time()
+        main(puz,start, goal)
+        final = time()
+        puz.open = dict()
+        puz.closed = dict()
+        puz.min = []
+        promedio.append(final-initial)
+        if i % int(iteraciones / 10) == 0:
+            print(i)
+    print(f"ETA: {sum(promedio)/iteraciones}")
