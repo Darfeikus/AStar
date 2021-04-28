@@ -182,9 +182,4 @@ if __name__ == "__main__":
     initial = time()
     nodes = main()
     final = time()
-    
-    # for n in nodes:
-    #     Puzzle.printM(Puzzle,n)
-    #     print("   |  \n   |  \n  \\|/")
-
     print(f'ETA: {final - initial}')
