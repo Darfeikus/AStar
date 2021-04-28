@@ -1,7 +1,5 @@
 #Oscar Barbosa Aquino
 #23/08/2019
-#Based on code by Ajinkya Sonawane
-import random
 
 class Node:
     def __init__(self,data,level,val,parent,direction):
