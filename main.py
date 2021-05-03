@@ -1,5 +1,5 @@
 #Oscar Barbosa Aquino
-#23/08/2019
+#23/08/2019 - 5/3/2021
 
 class Node:
     def __init__(self,data,level,val,parent,direction):
@@ -58,6 +58,7 @@ class Node:
             return -1 #They're different
 
 class Puzzle:
+    manhattan_cell_dict = dict()
         
     def __init__(self,size):
         self.n = size
@@ -76,10 +77,21 @@ class Puzzle:
         return self.toTuple(puz)
 
     def f(self,start,goal):
-        return self.h(start.data,goal)-self.g(start.level)
+        h = self.h(start.data,goal)
+        return h-self.g(start.level) if h != 0 else None
 
     def g(self,level):
         return level*(0.001)
+    
+    #Precalculation of all manhattan distances, provided by Antonio Diaz Flores
+    @staticmethod 
+    def precalc_manhattan_distance(goal):
+        size = len(goal)
+        for row in range(size):
+            for column in range(size):
+                for row_goal in range(size):
+                    for column_goal in range(size):
+                        Puzzle.manhattan_cell_dict[(goal[row_goal][column_goal], row, column)] = abs(row - row_goal) + abs(column - column_goal)
 
     def h(self,start,goal):
         temp = 0
@@ -88,11 +100,7 @@ class Puzzle:
             for j in size:
                 curr = start[i][j]
                 if curr != "0":
-                    for z in size:
-                        for k in size:
-                            if goal[z][k] == curr:
-                                temp+=abs(i-z)+abs(j-k)
-                                break;
+                    temp += Puzzle.manhattan_cell_dict[(curr, i, j)]
         return temp
         
     def printM(self, current):
@@ -130,20 +138,17 @@ class Puzzle:
 
         while True:           
 
-            key,val = self.min.pop(0)
+            key,val = self.min.pop(0) #Pop minimum value from list
 
-            current = open[self.toTuple(key)]
-            closed[self.toTuple(key)] = 1
+            minimum = open[self.toTuple(key)]
+            closed[self.toTuple(key)] = 1 #Put minimum into closed
             
-            if(h(current.data,goal) == 0):
-                return current
-            
-            kids = current.generate_child()
-
-            for node in kids:
+            for node in minimum.generate_child(): #For each kid in minimum
                 node.val = f(node,goal)
-                if closed.get(self.toTuple(node.data))==None: #Not in closed                    
-                    key = self.toTuple(node.data) #key
+                if node.val == None:
+                    return node
+                if closed.get(self.toTuple(node.data))== None: #If not in closed (already visited)
+                    key = self.toTuple(node.data) #key for dict
                     if open.get(key) == None: #First time seeing it
                         open[key] = node
                         self.insertMin(node.data, node.val)
@@ -152,10 +157,8 @@ class Puzzle:
                             open[key] = node
                             self.updateMin(node.data, node.val)
 
-    def process(self,debug):
-        start = self.accept()
-        goal = self.accept()
-        start = Node(start,0,0, None, "Start")
+    def process(self, debug, start, goal):
+        start = Node(start, level=0, val=0, parent=None, direction="Start")
         current = self.solve(start,goal,self.open,self.closed,self.f,self.h, debug)
 
         s = ""
@@ -172,12 +175,16 @@ class Puzzle:
 def main():
     n = int(input())
     puz = Puzzle(n)
-    return puz.process(0)
+    start = puz.accept()
+    goal = puz.accept()
+    puz.precalc_manhattan_distance(goal)
+    puz.process(0, start, goal)
 
 from time import time
 
 if __name__ == "__main__":
     initial = time()
-    nodes = main()
+    main()
     final = time()
-    print(f'ETA: {final - initial}')
+
+    print(f"ETA: {final-initial}")
