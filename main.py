@@ -1,6 +1,8 @@
 #Oscar Barbosa Aquino
 #23/08/2019 - 5/3/2021
 
+from time import time
+
 class Node:
     def __init__(self,data,level,val,parent,direction):
         self.data = data
@@ -14,16 +16,16 @@ class Node:
         val_list = [[[x,y-1],"L"],[[x,y+1],"R"],[[x-1,y],"U"],[[x+1,y],"D"]]
         children = []
         for i in val_list:
-            child = self.changePlaces(self.data,x,y,i[0][0],i[0][1])
+            child = self.changePlaces(x,y,i[0][0],i[0][1])
             if child is not None:
                 child_node = Node(child,self.level+1,0,self,i[1])
                 children.append(child_node)
         return children
         
-    def changePlaces(self,puz,x1,y1,x2,y2):
+    def changePlaces(self,x1,y1,x2,y2):
         if x2 >= 0 and x2 < len(self.data) and y2 >= 0 and y2 < len(self.data):
             temp_puz = []
-            temp_puz = self.copy(puz)
+            temp_puz = self.copy(self.data)
             temp = temp_puz[x2][y2]
             temp_puz[x2][y2] = temp_puz[x1][y1]
             temp_puz[x1][y1] = temp
@@ -58,7 +60,6 @@ class Node:
             return -1 #They're different
 
 class Puzzle:
-    
         
     def __init__(self,size):
         self.n = size
@@ -100,7 +101,7 @@ class Puzzle:
         return h-self.g(node.level) if h != 0 else None
 
     def g(self,level):
-        return level*(0.001)    
+        return level*(0.001)
 
     def h(self,node):
         temp = 0
@@ -121,7 +122,6 @@ class Puzzle:
 
     def insertMin(self, data, val):
         inserted = False
-        
         if self.min == []:
             self.min.append([data,val])
             inserted=True
@@ -140,12 +140,12 @@ class Puzzle:
                 self.min[i][1] = val
                 break;
 
-    def solve(self, debug):
+    def solve(self, debug): #A Estrella
         root = Node(self.start, level=0, val=0, parent=None, direction="Start") #Create start node
         root.val = self.f(root) #set value of node with f function
         self.open[root.data] = root #introduce node to open dict
         self.insertMin(root.data, root.val) #Insert as current minimum value
-        interations = 10000 #set number of iterations
+        interations = 1000 #set number of iterations
         while interations:
             interations-=1
             key,val = self.min.pop(0) #Pop minimum value from list of minimums
@@ -186,8 +186,6 @@ def main():
     puz.set_start()
     puz.set_goal()
     puz.process(0)
-
-from time import time
 
 if __name__ == "__main__":
     initial = time()
