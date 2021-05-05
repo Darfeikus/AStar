@@ -98,7 +98,7 @@ class Puzzle:
 
     def f(self,node):
         h = self.h(node.data)
-        return h-self.g(node.level) if h != 0 else None
+        return h-self.g(node.level) if h != 0 else 0
 
     def g(self,level):
         return level*(0.001)
@@ -153,7 +153,7 @@ class Puzzle:
             self.closed[self.toTuple(key)] = 1 #Put minimum into closed since we are visiting it        
             for node in minimum.generate_child(): #For each kid in minimum
                 node.val = self.f(node) #Set the value f for the kid
-                if node.val == None: #If is None, it means it's the answer
+                if node.val == 0: #If is None, it means it's the answer
                     return node
                 if self.closed.get(self.toTuple(node.data))== None: #If not in closed (already visited)
                     key = self.toTuple(node.data) #get key for dict to search for it
