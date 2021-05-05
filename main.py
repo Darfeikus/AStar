@@ -62,7 +62,7 @@ class Node:
 class Puzzle:
         
     def __init__(self,size):
-        self.n = size
+        self.size = size
         self.open = dict()
         self.closed = dict()
         self.start = None
@@ -75,14 +75,14 @@ class Puzzle:
 
     def set_start(self):
         puz = []
-        for _ in range(0,self.n):
+        for _ in range(0,self.size):
             temp = input().split(",")
             puz.append(temp)
         self.start = self.toTuple(puz)
     
     def set_goal(self):
         puz = []
-        for _ in range(0,self.n):
+        for _ in range(0,self.size):
             temp = input().split(",")
             puz.append(temp)
         self.goal = self.toTuple(puz)
@@ -105,7 +105,7 @@ class Puzzle:
 
     def h(self,node):
         temp = 0
-        size = range(0,self.n)
+        size = range(0,self.size)
         for i in size:
             for j in size:
                 curr = node.data[i][j]
