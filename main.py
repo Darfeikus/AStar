@@ -97,7 +97,7 @@ class Puzzle:
                         self.manhattan_cell_dict[(self.goal[row_goal][column_goal], row, column)] = abs(row - row_goal) + abs(column - column_goal)
 
     def f(self,node):
-        h = self.h(node.data)
+        h = self.h(node)
         return h-self.g(node.level) if h != 0 else 0
 
     def g(self,level):
@@ -108,7 +108,7 @@ class Puzzle:
         size = range(0,self.n)
         for i in size:
             for j in size:
-                curr = node[i][j]
+                curr = node.data[i][j]
                 if curr != "0":
                     temp += self.manhattan_cell_dict[(curr, i, j)]
         return temp
