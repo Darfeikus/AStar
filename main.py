@@ -58,49 +58,58 @@ class Node:
             return -1 #They're different
 
 class Puzzle:
-    manhattan_cell_dict = dict()
+    
         
     def __init__(self,size):
         self.n = size
         self.open = dict()
         self.closed = dict()
+        self.start = None
+        self.goal = None
         self.min = []
+        self.manhattan_cell_dict = dict()
 
     def toTuple(self,l):
         return tuple(tuple(x) for x in l)
 
-    def accept(self):
+    def set_start(self):
         puz = []
         for _ in range(0,self.n):
             temp = input().split(",")
             puz.append(temp)
-        return self.toTuple(puz)
-
-    def f(self,start,goal):
-        h = self.h(start.data,goal)
-        return h-self.g(start.level) if h != 0 else None
-
-    def g(self,level):
-        return level*(0.001)
+        self.start = self.toTuple(puz)
     
+    def set_goal(self):
+        puz = []
+        for _ in range(0,self.n):
+            temp = input().split(",")
+            puz.append(temp)
+        self.goal = self.toTuple(puz)
+
     #Precalculation of all manhattan distances, provided by Antonio Diaz Flores
-    @staticmethod 
-    def precalc_manhattan_distance(goal):
-        size = len(goal)
+    def precalc_manhattan_distance(self):
+        size = len(self.goal)
         for row in range(size):
             for column in range(size):
                 for row_goal in range(size):
                     for column_goal in range(size):
-                        Puzzle.manhattan_cell_dict[(goal[row_goal][column_goal], row, column)] = abs(row - row_goal) + abs(column - column_goal)
+                        self.manhattan_cell_dict[(self.goal[row_goal][column_goal], row, column)] = abs(row - row_goal) + abs(column - column_goal)
 
-    def h(self,start,goal):
+    def f(self,node):
+        h = self.h(node.data)
+        return h-self.g(node.level) if h != 0 else None
+
+    def g(self,level):
+        return level*(0.001)    
+
+    def h(self,node):
         temp = 0
         size = range(0,self.n)
         for i in size:
             for j in size:
-                curr = start[i][j]
+                curr = node[i][j]
                 if curr != "0":
-                    temp += Puzzle.manhattan_cell_dict[(curr, i, j)]
+                    temp += self.manhattan_cell_dict[(curr, i, j)]
         return temp
         
     def printM(self, current):
@@ -125,60 +134,58 @@ class Puzzle:
         if inserted==False:
             self.min.append([data,val])
         
-    def updateMin(self, data, val):        
+    def updateMin(self, data, val):
         for i in range(0,len(self.min)):
             if self.min[i][0] == data:
                 self.min[i][1] = val
                 break;
 
-    def solve(self,start, goal, open, closed, f, h, debug):
-        start.val = f(start,goal)
-        self.open[start.data] = start
-        self.insertMin(start.data, start.val)
-
-        while True:           
-
-            key,val = self.min.pop(0) #Pop minimum value from list
-
-            minimum = open[self.toTuple(key)]
-            closed[self.toTuple(key)] = 1 #Put minimum into closed
-            
+    def solve(self, debug):
+        root = Node(self.start, level=0, val=0, parent=None, direction="Start") #Create start node
+        root.val = self.f(root) #set value of node with f function
+        self.open[root.data] = root #introduce node to open dict
+        self.insertMin(root.data, root.val) #Insert as current minimum value
+        interations = 10000 #set number of iterations
+        while interations:
+            interations-=1
+            key,val = self.min.pop(0) #Pop minimum value from list of minimums
+            minimum = self.open[self.toTuple(key)] #get data from open dict
+            self.closed[self.toTuple(key)] = 1 #Put minimum into closed since we are visiting it        
             for node in minimum.generate_child(): #For each kid in minimum
-                node.val = f(node,goal)
-                if node.val == None:
+                node.val = self.f(node) #Set the value f for the kid
+                if node.val == None: #If is None, it means it's the answer
                     return node
-                if closed.get(self.toTuple(node.data))== None: #If not in closed (already visited)
-                    key = self.toTuple(node.data) #key for dict
-                    if open.get(key) == None: #First time seeing it
-                        open[key] = node
-                        self.insertMin(node.data, node.val)
-                    else:
-                        if node.compare(open[key]) == 0: #If better, replace, else, do nothing
-                            open[key] = node
+                if self.closed.get(self.toTuple(node.data))== None: #If not in closed (already visited)
+                    key = self.toTuple(node.data) #get key for dict to search for it
+                    if self.open.get(key) == None: #First time seeing it means it's not in open
+                        self.open[key] = node #Set node in open
+                        self.insertMin(node.data, node.val) #Insert int minimums list
+                    else: #If it was found in open
+                        if node.compare(self.open[key]) == 0: #If better, replace, else, do nothing
+                            self.open[key] = node
                             self.updateMin(node.data, node.val)
 
-    def process(self, debug, start, goal):
-        start = Node(start, level=0, val=0, parent=None, direction="Start")
-        current = self.solve(start,goal,self.open,self.closed,self.f,self.h, debug)
-
+    def process(self, debug):
+        self.precalc_manhattan_distance() #Get all of the manhattan distances
+        current = self.solve(debug)
         s = ""
         nodes = []
-
+        if current == None:
+            print("No solution found in 10000 nodes")
+            return nodes
         while current.prevDir != "Start":
             nodes.insert(0,current)
             s = current.prevDir+","+s
             current=current.parent
-            
         print(s[0:-1])
         return nodes
 
 def main():
     n = int(input())
     puz = Puzzle(n)
-    start = puz.accept()
-    goal = puz.accept()
-    puz.precalc_manhattan_distance(goal)
-    puz.process(0, start, goal)
+    puz.set_start()
+    puz.set_goal()
+    puz.process(0)
 
 from time import time
 
@@ -186,5 +193,4 @@ if __name__ == "__main__":
     initial = time()
     main()
     final = time()
-
     print(f"ETA: {final-initial}")
